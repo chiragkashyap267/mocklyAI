@@ -111,6 +111,7 @@ export default function InterviewRoom({ params }) {
   const [showHindiBanner,     setShowHindiBanner]     = useState(false);
   const [hindiNotified,       setHindiNotified]       = useState(false);
   const [questionKey,         setQuestionKey]         = useState(0);
+  const [showMicDropped,      setShowMicDropped]      = useState(false);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const transcriptRef        = useRef('');
@@ -128,12 +129,15 @@ export default function InterviewRoom({ params }) {
   const isFinishedRef        = useRef(false);
   const finalBufferRef        = useRef('');  // Accumulated final text across restart cycles
   const isListeningRef        = useRef(false); // Controls auto-restart in onend
+  const isRecordingRef        = useRef(false); // Mirror of isRecording for use in intervals
+  const watchdogRef           = useRef(null);  // Mic drop watchdog interval
 
   // Keep refs in sync
   useEffect(() => { activeIdxRef.current    = activeQuestionIndex; }, [activeQuestionIndex]);
   useEffect(() => { isEvaluatingRef.current = isEvaluating;        }, [isEvaluating]);
   useEffect(() => { interviewRef.current    = interview;           }, [interview]);
   useEffect(() => { isFinishedRef.current   = isFinished;          }, [isFinished]);
+  useEffect(() => { isRecordingRef.current  = isRecording;         }, [isRecording]);
 
   // ── Fetch interview ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -324,6 +328,32 @@ export default function InterviewRoom({ params }) {
     if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
   };
 
+  // ── Mic watchdog ──────────────────────────────────────────────────────────────────
+  // Checks every 4s if we should be recording but aren't (mic drop), then auto-restarts
+  const startWatchdog = useCallback(() => {
+    if (watchdogRef.current) clearInterval(watchdogRef.current);
+    watchdogRef.current = setInterval(() => {
+      if (
+        isListeningRef.current &&
+        !isEvaluatingRef.current &&
+        !isFinishedRef.current &&
+        !isRecordingRef.current
+      ) {
+        // Mic dropped — show banner and attempt restart
+        setShowMicDropped(true);
+        try { recognitionRef.current?.start(); } catch (_) {}
+      } else if (isRecordingRef.current) {
+        // Mic came back
+        setShowMicDropped(false);
+      }
+    }, 4000);
+  }, []);
+
+  const stopWatchdog = useCallback(() => {
+    if (watchdogRef.current) { clearInterval(watchdogRef.current); watchdogRef.current = null; }
+    setShowMicDropped(false);
+  }, []);
+
   // ── TTS voice selector ─────────────────────────────────────────────────────
   const getBestVoice = () => {
     const voices = window.speechSynthesis.getVoices();
@@ -339,23 +369,50 @@ export default function InterviewRoom({ params }) {
     if (!('speechSynthesis' in window)) { startListening(); return; }
     window.speechSynthesis.cancel(); stopTtsKeepAlive();
     const go = () => {
-      const utt = new SpeechSynthesisUtterance(text);
+      const utt   = new SpeechSynthesisUtterance(text);
       const voice = getBestVoice();
       if (voice) { utt.voice = voice; utt.lang = voice.lang; } else { utt.lang = 'en-US'; }
       utt.rate = 0.88; utt.pitch = 1.05; utt.volume = 1;
-      utt.onboundary = (e) => { if (e.name === 'word') setSpokenWordIndex(e.charIndex); };
-      utt.onstart    = () => { setIsSpeaking(true); setSpokenWordIndex(0); startTtsKeepAlive(); };
-      utt.onend      = () => { stopTtsKeepAlive(); setIsSpeaking(false); setSpokenWordIndex(-1); onDone ? onDone() : startListening(); };
-      utt.onerror    = (e) => {
-        stopTtsKeepAlive(); setIsSpeaking(false); setSpokenWordIndex(-1);
+
+      // Boundary watchdog: if onboundary stops for 3.5s while TTS still speaks
+      // (Chrome bug after 10-12 utterances), degrade gracefully by clearing highlight
+      let lastBoundaryMs   = Date.now();
+      let boundaryWatchdog = null;
+      const clearBWatchdog = () => {
+        if (boundaryWatchdog) { clearInterval(boundaryWatchdog); boundaryWatchdog = null; }
+      };
+
+      utt.onboundary = (e) => {
+        if (e.name === 'word') { lastBoundaryMs = Date.now(); setSpokenWordIndex(e.charIndex); }
+      };
+      utt.onstart = () => {
+        setIsSpeaking(true); setSpokenWordIndex(0); startTtsKeepAlive();
+        boundaryWatchdog = setInterval(() => {
+          if (Date.now() - lastBoundaryMs > 3500 && window.speechSynthesis.speaking) {
+            setSpokenWordIndex(-1); // Degrade cleanly — no frozen highlight
+            clearBWatchdog();
+          }
+        }, 2000);
+      };
+      utt.onend = () => {
+        clearBWatchdog(); stopTtsKeepAlive();
+        setIsSpeaking(false); setSpokenWordIndex(-1);
+        onDone ? onDone() : startListening();
+      };
+      utt.onerror = (e) => {
+        clearBWatchdog(); stopTtsKeepAlive();
+        setIsSpeaking(false); setSpokenWordIndex(-1);
         if (e.error !== 'interrupted' && e.error !== 'canceled') console.warn('TTS:', e.error);
         onDone ? onDone() : startListening();
       };
       window.speechSynthesis.speak(utt);
     };
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) go();
-    else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; go(); }; }
+    // 80ms delay after cancel() lets Chrome flush its TTS queue before new utterance
+    setTimeout(() => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) go();
+      else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; go(); }; }
+    }, 80);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -383,16 +440,18 @@ export default function InterviewRoom({ params }) {
     }, 250);
     setIsRecording(true);
     resetSilenceTimer();
-  }, [resetSilenceTimer]);
+    startWatchdog(); // Begin mic-drop detection
+  }, [resetSilenceTimer, startWatchdog]);
 
   // ── Finish interview ──────────────────────────────────────────────────────
   const finishInterview = useCallback(() => {
     isListeningRef.current = false;  // Prevent onend from restarting
+    stopWatchdog();                  // Stop mic-drop detection
     window.speechSynthesis?.cancel(); stopTtsKeepAlive(); killTimers();
     try { recognitionRef.current?.abort(); } catch (_) {}
     setIsFinished(true); isFinishedRef.current = true;
     setIsRecording(false); setIsSpeaking(false);
-  }, [killTimers]);
+  }, [killTimers, stopWatchdog]);
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const autoSubmitAnswer = useCallback(async () => {
@@ -474,6 +533,27 @@ export default function InterviewRoom({ params }) {
       )}
       {showHindiBanner && (
         <HindiBanner onDismiss={() => setShowHindiBanner(false)} />
+      )}
+      {/* ── Mic-drop banner ── */}
+      {showMicDropped && !isFinished && (
+        <div className="fixed bottom-20 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-96 z-[120] animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-[#180808]/98 border border-red-500/40 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-2xl backdrop-blur-xl">
+            <div className="relative flex-shrink-0">
+              <div className="w-3 h-3 rounded-full bg-red-500 animate-ping absolute inset-0" />
+              <div className="w-3 h-3 rounded-full bg-red-500 relative" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-red-200 text-sm font-bold leading-tight">Microphone Disconnected</p>
+              <p className="text-red-400/70 text-xs mt-0.5">Auto-restarting… Tap button if needed.</p>
+            </div>
+            <button
+              onClick={() => { setShowMicDropped(false); startListening(); }}
+              className="flex-shrink-0 bg-red-600 hover:bg-red-500 active:scale-95 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
+            >
+              Restart Mic
+            </button>
+          </div>
+        </div>
       )}
 
       {/*

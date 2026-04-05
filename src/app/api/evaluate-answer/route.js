@@ -24,23 +24,41 @@ export async function POST(req) {
       : '';
 
     const prompt = `You are a highly experienced technical interviewer and hiring manager at a top Indian tech company.
-You are evaluating a candidate's spoken voice response to an interview question.
+You are evaluating a candidate's SPOKEN voice answer that was captured via automatic speech recognition (ASR/STT).
+
+⚠️ CRITICAL — ASR Transcription Errors:
+The candidate's answer below was captured by a microphone and converted to text automatically. It WILL contain:
+- Speech recognition errors and mishearing (e.g. "cementing HTML" = "semantic HTML", "Tom document" = "DOM document")
+- Filler words (umm, uh, like, so, basically)
+- Incomplete sentences due to natural speech patterns
+- Hinglish mix (Hindi words inserted into English speech)
+
+Your job:
+STEP 1 — Mentally reconstruct the candidate's INTENDED meaning by correcting likely ASR errors and filler words.
+STEP 2 — Evaluate their conceptual understanding based on the reconstructed meaning, NOT the literal broken text.
+STEP 3 — Score generously for correct concepts even if the words are garbled, as this is voice input.
 
 Interview Question: "${question}"
 Ideal Concepts to mention: ${conceptsString}
 
-Candidate's Transcribed Spoken Answer:
+Candidate's Raw ASR Transcript (may be garbled):
 """
 ${userAnswer}
 """
 
-Critique the candidate's answer accurately but constructively. Voice answers are informal — do not penalize for filler words or grammar. Compare conceptual understanding against the ideal concepts.${languageNote}
+Evaluation rules:
+- Voice answers are informal — NEVER penalize grammar, filler words, or word order
+- A score of 7+ means they understood the core concept
+- A score of 4-6 means partial understanding
+- A score below 4 means they clearly don't know the concept
+- Be encouraging and constructive
+- Do NOT quote the garbled transcript back to them verbatim${languageNote}
 
-Return your evaluation STRICTLY as a JSON object with NO markdown block wrappers:
+Return your evaluation STRICTLY as a valid JSON object with NO markdown code blocks:
 {
-  "score": <number 1-10>,
-  "feedback": "A concise, supportive 2-3 sentence paragraph. Acknowledge what they got right first.",
-  "improvement": "One specific actionable improvement or important concept they missed."
+  "score": <integer 1-10>,
+  "feedback": "2-3 sentences. Start by acknowledging what they got right (based on reconstructed meaning). Be warm and constructive.",
+  "improvement": "One specific, actionable concept they missed or should elaborate on next time."
 }`;
 
     const maxRetries = 3;

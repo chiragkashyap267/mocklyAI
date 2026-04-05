@@ -280,29 +280,40 @@ export default function DashboardLayout({ children }) {
 
         <nav className="flex-1 px-4 space-y-2">
           {navLinks.map((link) => {
-            const Icon     = link.icon;
-            const isActive = pathname === link.href;
+            const Icon         = link.icon;
+            const isActive     = pathname === link.href;
+            const isLeaderboard = link.name === 'Leaderboard';
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={closeMobileMenu}
                 className={`group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
+                  isActive && isLeaderboard
+                    ? 'bg-gradient-to-r from-orange-500/20 to-amber-500/5 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(249,115,22,0.1)]'
+                    : isActive
                     ? 'bg-gradient-to-r from-indigo-500/10 to-transparent text-indigo-300 border border-indigo-500/20'
+                    : isLeaderboard
+                    ? 'text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 border border-orange-500/10 hover:border-orange-500/25'
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-indigo-400' : 'group-hover:text-indigo-300'}`} />
+                  <Icon className={`w-5 h-5 ${
+                    isLeaderboard
+                      ? (isActive ? 'text-orange-400' : 'text-orange-400/80')
+                      : isActive ? 'text-indigo-400' : 'group-hover:text-indigo-300'
+                  }`} />
                   <span className="font-medium text-sm">{link.name}</span>
-                  {link.name === 'Leaderboard' && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black text-white bg-gradient-to-r from-red-500 to-orange-500 animate-pulse">
+                  {isLeaderboard && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-[0_0_12px_rgba(249,115,22,0.6)] border border-orange-400/30">
                       HOT 🔥
                     </span>
                   )}
                 </div>
-                {isActive && <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
+                {isActive && (
+                  <div className={`w-1.5 h-1.5 rounded-full ${isLeaderboard ? 'bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'bg-indigo-400'}`} />
+                )}
               </Link>
             );
           })}
