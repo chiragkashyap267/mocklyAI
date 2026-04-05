@@ -126,7 +126,8 @@ export default function InterviewRoom({ params }) {
   const ttsKeepAliveRef      = useRef(null);
   const cheatWarningsRef     = useRef(0);
   const isFinishedRef        = useRef(false);
-  const baseResultIndexRef   = useRef(-1);
+  const finalBufferRef        = useRef('');  // Accumulated final text across restart cycles
+  const isListeningRef        = useRef(false); // Controls auto-restart in onend
 
   // Keep refs in sync
   useEffect(() => { activeIdxRef.current    = activeQuestionIndex; }, [activeQuestionIndex]);
@@ -153,44 +154,89 @@ export default function InterviewRoom({ params }) {
   }, [id, router]);
 
   // ── Speech recognition init ────────────────────────────────────────────────
+  // KEY FIX: continuous:false prevents Android Chrome from accumulating ALL
+  // historical results across auto-restarts. Each start() creates a fresh
+  // ev.results array. We manually restart in onend via isListeningRef.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
     const rec = new SR();
-    rec.continuous      = true;
+    rec.continuous      = false; // Must be false to prevent Android duplication
     rec.interimResults  = true;
     rec.maxAlternatives = 1;
     rec.lang            = 'en-IN';
 
-    rec.onstart  = () => { setIsRecording(true); baseResultIndexRef.current = -1; };
-    rec.onend    = () => setIsRecording(false);
-    rec.onerror  = (e) => {
-      if (e.error !== 'no-speech' && e.error !== 'aborted') console.error('SR:', e.error);
+    rec.onstart = () => setIsRecording(true);
+
+    // onend fires when the engine pauses. Auto-restart if we should still be listening.
+    rec.onend = () => {
       setIsRecording(false);
-    };
-    rec.onresult = (ev) => {
-      if (baseResultIndexRef.current === -1) baseResultIndexRef.current = ev.resultIndex;
-      const base = baseResultIndexRef.current;
-      let finalText = '', interimText = '';
-      for (let i = base; i < ev.results.length; i++) {
-        if (ev.results[i].isFinal) finalText   += ev.results[i][0].transcript + ' ';
-        else                        interimText  = ev.results[i][0].transcript;
+      if (isListeningRef.current && !isEvaluatingRef.current && !isFinishedRef.current) {
+        // Slight delay prevents rapid-fire restarts on mobile
+        setTimeout(() => {
+          if (isListeningRef.current && !isEvaluatingRef.current && !isFinishedRef.current) {
+            try { rec.start(); } catch (_) {}
+          }
+        }, 150);
       }
-      const t = (finalText + interimText).trim();
+    };
+
+    rec.onerror = (e) => {
+      setIsRecording(false);
+      if (e.error !== 'no-speech' && e.error !== 'aborted') console.error('SR error:', e.error);
+      // Restart on recoverable errors
+      if (e.error === 'network' || e.error === 'audio-capture') {
+        setTimeout(() => {
+          if (isListeningRef.current && !isEvaluatingRef.current) {
+            try { rec.start(); } catch (_) {}
+          }
+        }, 500);
+      }
+    };
+
+    // onresult: with continuous:false, each session starts a FRESH ev.results
+    // array at index 0. We read only what's new in this session and add finals
+    // to finalBufferRef. No cross-session bleed is possible.
+    rec.onresult = (ev) => {
+      let sessionFinal = '';
+      let sessionInterim = '';
+
+      for (let i = 0; i < ev.results.length; i++) {
+        if (ev.results[i].isFinal) {
+          sessionFinal += ev.results[i][0].transcript + ' ';
+        } else {
+          // Only use the LAST interim result (most complete for this utterance)
+          sessionInterim = ev.results[i][0].transcript;
+        }
+      }
+
+      // If any result is finalized in this event, accumulate into buffer
+      if (sessionFinal.trim()) {
+        finalBufferRef.current = (finalBufferRef.current + ' ' + sessionFinal).trim();
+        sessionFinal = ''; // Already merged into buffer
+      }
+
+      // Full transcript = buffer (past finals) + current interim
+      const t = (finalBufferRef.current + (sessionInterim ? ' ' + sessionInterim : '')).trim();
+
+      // Hindi detection
       if (t && containsHindi(t) && !hindiNotified) {
         setHindiNotified(true);
         setShowHindiBanner(true);
         speakHindiNotice();
       }
+
       setTranscript(t);
       transcriptRef.current = t;
-      if (t.trim()) resetSilenceTimer();
+      if (t) resetSilenceTimer();
     };
+
     recognitionRef.current = rec;
     return () => {
+      isListeningRef.current = false;
       killTimers(); stopTtsKeepAlive();
-      try { rec.stop(); } catch (_) {}
+      try { rec.abort(); } catch (_) {}
       window.speechSynthesis?.cancel();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -323,17 +369,27 @@ export default function InterviewRoom({ params }) {
 
   // ── Start listening ────────────────────────────────────────────────────────
   const startListening = useCallback(() => {
-    setTranscript(''); transcriptRef.current = ''; baseResultIndexRef.current = -1;
-    try { recognitionRef.current?.stop(); } catch (_) {}
-    setTimeout(() => { try { recognitionRef.current?.start(); } catch (_) {} }, 200);
+    // Reset all transcript state for a new question
+    setTranscript('');
+    transcriptRef.current = '';
+    finalBufferRef.current = '';   // Critical: clear buffer for this new question
+    isListeningRef.current = true; // Signal onend to auto-restart
+    // Abort any running session before starting fresh
+    try { recognitionRef.current?.abort(); } catch (_) {}
+    setTimeout(() => {
+      if (isListeningRef.current && !isEvaluatingRef.current && !isFinishedRef.current) {
+        try { recognitionRef.current?.start(); } catch (_) {}
+      }
+    }, 250);
     setIsRecording(true);
     resetSilenceTimer();
   }, [resetSilenceTimer]);
 
   // ── Finish interview ──────────────────────────────────────────────────────
   const finishInterview = useCallback(() => {
+    isListeningRef.current = false;  // Prevent onend from restarting
     window.speechSynthesis?.cancel(); stopTtsKeepAlive(); killTimers();
-    try { recognitionRef.current?.stop(); } catch (_) {}
+    try { recognitionRef.current?.abort(); } catch (_) {}
     setIsFinished(true); isFinishedRef.current = true;
     setIsRecording(false); setIsSpeaking(false);
   }, [killTimers]);
@@ -344,8 +400,9 @@ export default function InterviewRoom({ params }) {
     const ft = transcriptRef.current, ci = interviewRef.current, idx = activeIdxRef.current;
     if (!ft.trim() || !ci || isEvaluatingRef.current) return;
     setIsEvaluating(true); setIsRecording(false);
+    isListeningRef.current = false; // Prevent onend from restarting during evaluation
     window.speechSynthesis?.cancel(); stopTtsKeepAlive();
-    try { recognitionRef.current?.stop(); } catch (_) {}
+    try { recognitionRef.current?.abort(); } catch (_) {}
     try {
       const q   = ci.questions[idx];
       const res = await fetch('/api/evaluate-answer', {
@@ -377,7 +434,8 @@ export default function InterviewRoom({ params }) {
     const ci = interviewRef.current, idx = activeIdxRef.current;
     if (!ci || isEvaluatingRef.current) return;
     setIsEvaluating(true); setIsRecording(false);
-    try { recognitionRef.current?.stop(); } catch (_) {}
+    isListeningRef.current = false; // Prevent onend from restarting during skip
+    try { recognitionRef.current?.abort(); } catch (_) {}
     try {
       const updated = [...ci.answers];
       updated[idx]  = { transcript: 'User skipped.', evaluation: { score: 0, feedback: 'Skipped.', improvement: 'Try next time.' } };
