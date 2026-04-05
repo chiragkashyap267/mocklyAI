@@ -16,15 +16,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Custom scrollbar for interview question area */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(99, 102, 241, 0.35);
   border-radius: 9999px;
@@ -33,3 +30,60 @@ body {
   background: rgba(99, 102, 241, 0.6);
 }
 
+/* ── Waveform bars (recording indicator) ──────────────────────────── */
+@keyframes waveBar {
+  0%   { transform: scaleY(0.3); }
+  100% { transform: scaleY(1.0); }
+}
+.wave-bar {
+  display: inline-block;
+  width: 3px;
+  border-radius: 9999px;
+  transform-origin: bottom center;
+  animation: waveBar 0.55s ease-in-out infinite alternate;
+}
+.wave-bar:nth-child(1) { animation-delay: 0.00s; height: 14px; }
+.wave-bar:nth-child(2) { animation-delay: 0.10s; height: 20px; }
+.wave-bar:nth-child(3) { animation-delay: 0.20s; height: 26px; }
+.wave-bar:nth-child(4) { animation-delay: 0.10s; height: 20px; }
+.wave-bar:nth-child(5) { animation-delay: 0.00s; height: 14px; }
+
+/* ── Question transition shimmer bar ─────────────────────────────── */
+@keyframes shimmerSlide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%);  }
+}
+.shimmer-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(99,102,241,0.6), transparent);
+  animation: shimmerSlide 1.2s ease-in-out infinite;
+}
+
+/* ── Bounce dots (transition) ────────────────────────────────────── */
+@keyframes bounceDot {
+  0%, 80%, 100% { transform: translateY(0);   }
+  40%           { transform: translateY(-8px); }
+}
+.bounce-dot { animation: bounceDot 1.2s ease-in-out infinite; }
+.bounce-dot:nth-child(1) { animation-delay: 0.00s; }
+.bounce-dot:nth-child(2) { animation-delay: 0.15s; }
+.bounce-dot:nth-child(3) { animation-delay: 0.30s; }
+
+/* ── Cheat warning shake ─────────────────────────────────────────── */
+@keyframes shakeWarn {
+  0%, 100% { transform: translateX(0);    }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px);  }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px);  }
+}
+.shake-warn { animation: shakeWarn 0.5s ease-in-out; }
+
+/* ── Slide-up question entry ─────────────────────────────────────── */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.slide-up-fade { animation: slideUpFade 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }

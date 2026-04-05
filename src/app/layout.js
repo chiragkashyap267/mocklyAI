@@ -22,9 +22,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative pb-16">
+      <body className="min-h-full flex flex-col relative">
         {children}
-        <footer className="absolute bottom-0 w-full py-4 text-center text-slate-500 text-sm font-medium tracking-wide">
+        <footer className="fixed bottom-0 w-full py-3 text-center text-slate-600 text-xs font-medium tracking-wide pointer-events-none z-10">
           Made by <span className="text-indigo-400">Chirag Kashyap</span>
         </footer>
       </body>

@@ -1,47 +1,50 @@
 import { NextResponse } from 'next/server';
 import { getGeminiModel } from '@/lib/gemini';
 
-export const maxDuration = 60; // Allow Vercel to run up to 60s for retry logic
+export const maxDuration = 60;
 
 export async function POST(req) {
   try {
-    const { question, idealConcepts, userAnswer } = await req.json();
+    const { question, idealConcepts, userAnswer, isHindi } = await req.json();
 
     if (!question || !userAnswer) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Model is loaded inside the retry loop now to ensure dynamic key rotation on failures
-
-    const conceptsString = Array.isArray(idealConcepts) 
-      ? idealConcepts.join(', ') 
-      : typeof idealConcepts === 'string' 
-        ? idealConcepts 
+    const conceptsString = Array.isArray(idealConcepts)
+      ? idealConcepts.join(', ')
+      : typeof idealConcepts === 'string'
+        ? idealConcepts
         : 'None specified';
 
-    const prompt = `You are a highly experienced technical interviewer and hiring manager. 
-    You are evaluating a candidate's spoken response to an interview question.
-    
-    Interview Question: "${question}"
-    Ideal Concepts they should ideally mention: ${conceptsString}
-    
-    Candidate's Transcribed Spoken Answer:
-    """
-    ${userAnswer}
-    """
-    
-    Critique the candidate's answer accurately but constructively. Compare their answer against the ideal concepts.
-    
-    Return your evaluation STRICTLY as a JSON object with no markdown block wrappers. Use this exact structure:
-    {
-      "score": <number between 1 and 10>,
-      "feedback": "A concise, supportive paragraph giving feedback on their answer. Call out what they did correctly.",
-      "improvement": "A concise sentence pointing out 1 area where they could improve or an important concept they missed from the ideal concepts."
-    }
-    `;
+    // Detect Hindi in request or content (Devanagari Unicode block)
+    const hindiInAnswer  = isHindi || /[\u0900-\u097F]/.test(userAnswer);
+    const languageNote   = hindiInAnswer
+      ? `\n\n⚠️ IMPORTANT: The candidate answered in Hindi or Hinglish (Hindi + English mix). This is acceptable — evaluate their conceptual understanding regardless of the input language. Your feedback, score, and improvement suggestions MUST be written in English.`
+      : '';
+
+    const prompt = `You are a highly experienced technical interviewer and hiring manager at a top Indian tech company.
+You are evaluating a candidate's spoken voice response to an interview question.
+
+Interview Question: "${question}"
+Ideal Concepts to mention: ${conceptsString}
+
+Candidate's Transcribed Spoken Answer:
+"""
+${userAnswer}
+"""
+
+Critique the candidate's answer accurately but constructively. Voice answers are informal — do not penalize for filler words or grammar. Compare conceptual understanding against the ideal concepts.${languageNote}
+
+Return your evaluation STRICTLY as a JSON object with NO markdown block wrappers:
+{
+  "score": <number 1-10>,
+  "feedback": "A concise, supportive 2-3 sentence paragraph. Acknowledge what they got right first.",
+  "improvement": "One specific actionable improvement or important concept they missed."
+}`;
 
     const maxRetries = 3;
-    let attempt = 0;
+    let attempt    = 0;
     let evaluation = null;
 
     while (attempt < maxRetries) {
@@ -49,21 +52,15 @@ export async function POST(req) {
         const geminiModel = getGeminiModel();
         if (!geminiModel) throw new Error('Gemini API is not configured on the server.');
 
-        const result = await geminiModel.generateContent(prompt);
+        const result       = await geminiModel.generateContent(prompt);
         const responseText = result.response.text();
-        
-        const cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
-        evaluation = JSON.parse(cleanJson);
-        break; // Success!
+        const cleanJson    = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        evaluation         = JSON.parse(cleanJson);
+        break;
       } catch (err) {
         attempt++;
         console.warn(`Gemini Evaluation attempt ${attempt} failed:`, err.message);
-        
-        if (attempt >= maxRetries) {
-          throw err; // Exhausted retries, proceed to fallback
-        }
-        
-        // Wait 2.5s, then 5s before trying again to let the rate limit cool down
+        if (attempt >= maxRetries) throw err;
         await new Promise(res => setTimeout(res, 2500 * attempt));
       }
     }
@@ -72,13 +69,12 @@ export async function POST(req) {
 
   } catch (error) {
     console.error('Final Gemini Evaluation Error:', error);
-    // Ultimate fallback only if all 3 retries completely fail
-    return NextResponse.json({ 
+    return NextResponse.json({
       evaluation: {
-        score: 5,
-        feedback: "Your answer was recorded successfully. (AI evaluation is currently unavailable due to high server load).",
-        improvement: "Continue practicing structure and depth."
-      } 
+        score:       5,
+        feedback:    'Your answer was recorded successfully. (AI evaluation is temporarily unavailable due to high load.)',
+        improvement: 'Focus on structured answers with clear examples.',
+      },
     });
   }
 }
