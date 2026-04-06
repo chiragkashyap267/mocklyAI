@@ -12,7 +12,16 @@ import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // ── College list ────────────────────────────────────────────────────────────
-const PRESET_COLLEGES = ['GB PANT ENGINEERING COLLEGE'];
+const PRESET_COLLEGES = [
+  'GB PANT ENGINEERING COLLEGE',
+  'G.B.P.U.A.T',
+  'HNBGU PAURI GARHWAL',
+  'PHONICS ROORKEE',
+  'QUANTUM ROORKEE',
+  'KLDAV ROORKEE',
+  'BSM ROORKEE',
+  'UK TECH UTTRAKHAND'
+];
 
 // ── Profile Setup Modal ─────────────────────────────────────────────────────
 function ProfileSetupModal({ user, onComplete }) {
