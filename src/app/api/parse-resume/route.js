@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { PDFParse } = require('pdf-parse');
+const PDFParser = require("pdf2json");
 
 export async function POST(req) {
   try {
@@ -10,19 +10,30 @@ export async function POST(req) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Convert the file to a Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Parse the PDF using v2 API
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
-    await parser.destroy();
+    // Use pdf2json for robust serverless Vercel parsing
+    const extractedText = await new Promise((resolve, reject) => {
+      const pdfParser = new PDFParser(this, 1);
+      
+      pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError));
+      pdfParser.on("pdfParser_dataReady", pdfData => {
+        resolve(pdfParser.getRawTextContent().replace(/\r\n/g, ' '));
+      });
+
+      pdfParser.parseBuffer(buffer);
+    });
+
+    if (!extractedText || extractedText.trim().length < 10) {
+       throw new Error("No readable text found.");
+    }
 
     return NextResponse.json({ 
       success: true, 
-      text: result.text 
+      text: extractedText 
     });
+
   } catch (error) {
     console.error('Error parsing PDF:', error);
     return NextResponse.json(
