@@ -114,19 +114,27 @@ JSON structure (array of exactly 5):
     // Fault-tolerant internal function to generate content using dynamic key load balancing
     const generateWithRetry = async (promptText) => {
       let lastError;
-      for (let attempt = 0; attempt < 3; attempt++) {
+      let failedKeys = [];
+      const maxAttempts = 5; // Up to 5 attempts across different keys
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        let currentKey = null;
         try {
-          const geminiModel = getGeminiModel();
+          const { model: geminiModel, keyUsed } = getGeminiModel(failedKeys);
+          currentKey = keyUsed;
+          
           if (!geminiModel) throw new Error('Mockly AI is not configured.');
           return await geminiModel.generateContent(promptText);
         } catch (error) {
           lastError = error;
+          if (currentKey) failedKeys.push(currentKey);
+          
           console.warn(`Generate attempt ${attempt + 1} failed:`, error.message);
-          // Wait 2s then 4s, giving the API pool a chance to recover or pull a fresh key
-          if (attempt < 2) await new Promise(res => setTimeout(res, (attempt + 1) * 2000));
+          // Fast retry with a new key instead of waiting
+          if (attempt < maxAttempts - 1) await new Promise(res => setTimeout(res, 800));
         }
       }
-      throw lastError; // If all 3 attempts fail across all keys, throw
+      throw lastError; // If all attempts fail across keys
     };
 
     // Run both prompts in parallel for speed, fully fault-tolerant

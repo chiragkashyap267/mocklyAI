@@ -61,13 +61,17 @@ Return your evaluation STRICTLY as a valid JSON object with NO markdown code blo
   "improvement": "One specific, actionable concept they missed or should elaborate on next time."
 }`;
 
-    const maxRetries = 3;
+    const maxRetries = 5;
     let attempt    = 0;
     let evaluation = null;
+    let failedKeys = [];
 
     while (attempt < maxRetries) {
+      let currentKey = null;
       try {
-        const geminiModel = getGeminiModel();
+        const { model: geminiModel, keyUsed } = getGeminiModel(failedKeys);
+        currentKey = keyUsed;
+        
         if (!geminiModel) throw new Error('Gemini API is not configured on the server.');
 
         const result       = await geminiModel.generateContent(prompt);
@@ -77,9 +81,10 @@ Return your evaluation STRICTLY as a valid JSON object with NO markdown code blo
         break;
       } catch (err) {
         attempt++;
+        if (currentKey) failedKeys.push(currentKey);
         console.warn(`Gemini Evaluation attempt ${attempt} failed:`, err.message);
         if (attempt >= maxRetries) throw err;
-        await new Promise(res => setTimeout(res, 2500 * attempt));
+        await new Promise(res => setTimeout(res, 800)); // Fast retry with a new key
       }
     }
 

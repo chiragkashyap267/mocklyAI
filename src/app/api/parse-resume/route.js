@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 const { PDFParse } = require('pdf-parse');
 
+export const maxDuration = 30; // Better support for large PDFs on Vercel
+
 export async function POST(req) {
   try {
     const formData = await req.formData();
@@ -26,8 +28,8 @@ export async function POST(req) {
   } catch (error) {
     console.error('Error parsing PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to parse the resume. Please ensure it is a valid PDF file.' }, 
-      { status: 500 }
+      { error: 'Failed to extract text from this PDF. It might be encrypted, scanned, or in an unsupported format. Please try another resume.' }, 
+      { status: 422 }
     );
   }
 }
