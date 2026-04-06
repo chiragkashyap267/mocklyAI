@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 const { PDFParse } = require('pdf-parse');
 
-export const maxDuration = 30; // Better support for large PDFs on Vercel
-
 export async function POST(req) {
   try {
     const formData = await req.formData();
