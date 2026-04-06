@@ -93,7 +93,16 @@ export default function ResumesPage() {
         body: formData
       });
 
-      const data = await parseRes.json();
+      let data = {};
+      try {
+        const textResponse = await parseRes.text();
+        if (textResponse.startsWith('<!DOCTYPE') || textResponse.startsWith('<html')) {
+          throw new Error('Vercel server timeout or server error. The PDF might be too large or complex for the free tier.');
+        }
+        data = JSON.parse(textResponse);
+      } catch (err) {
+        throw new Error(err.message || 'Server returned an invalid response. Please try a simpler or smaller PDF.');
+      }
 
       if (!parseRes.ok) {
         throw new Error(data.error || 'Failed to parse PDF');
