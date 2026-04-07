@@ -1,5 +1,7 @@
 'use client';
 
+import { Suspense } from 'react';
+
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -50,7 +52,7 @@ const calcScores = (questions = [], answers = []) => {
   };
 };
 
-export default function LeaderboardPage() {
+function LeaderboardContent() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [expandedId,  setExpandedId]  = useState(null);
@@ -404,5 +406,17 @@ export default function LeaderboardPage() {
         Made by <span className="text-slate-500 font-semibold">Chirag Kashyap</span> · Mockly AI
       </p>
     </div>
+  );
+}
+
+export default function LeaderboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
+      </div>
+    }>
+      <LeaderboardContent />
+    </Suspense>
   );
 }
