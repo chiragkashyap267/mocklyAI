@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
 import {
@@ -55,6 +56,8 @@ export default function LeaderboardPage() {
   const [expandedId,  setExpandedId]  = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [filterLevel, setFilterLevel] = useState('All');
+  const searchParams  = useSearchParams();
+  const expandRef     = useRef(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => setCurrentUser(u));
@@ -104,6 +107,19 @@ export default function LeaderboardPage() {
     }
     fetchLeaderboard();
   }, []);
+
+  // Auto-expand the entry passed via ?expand=id and scroll to it
+  useEffect(() => {
+    const id = searchParams.get('expand');
+    if (!id || loading) return;
+    setExpandedId(id);
+    // Wait a tick for the DOM to render the expanded row, then scroll
+    setTimeout(() => {
+      if (expandRef.current) {
+        expandRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 350);
+  }, [searchParams, loading]);
 
   const levels = ['All', 'Internship', 'Junior / Entry-Level', 'Mid-Level', 'Senior', 'Lead / Manager'];
   const filtered = filterLevel === 'All'
@@ -179,8 +195,10 @@ export default function LeaderboardPage() {
                 medalIcon = <Medal className="w-6 h-6 text-orange-400" />;
               }
 
+              // Attach ref to the auto-expand target row
+              const isAutoExpand = searchParams.get('expand') === entry.id;
               return (
-                <div key={entry.id} className="flex flex-col space-y-2">
+                <div key={entry.id} className="flex flex-col space-y-2" ref={isAutoExpand ? expandRef : null}>
                   <div className={`relative flex flex-col sm:flex-row sm:items-center p-4 sm:p-5 rounded-2xl border transition-all duration-300 sm:hover:scale-[1.005] ${rankStyle}`}>
 
                     {/* Rank */}

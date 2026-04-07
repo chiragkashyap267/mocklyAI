@@ -113,13 +113,32 @@ function SetupForm() {
               <Sparkles className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Configure Interview</h1>
-              <p className="text-slate-400 mt-1">Tell Mockly AI the role you are aiming for.</p>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h1 className="text-3xl font-bold text-white tracking-tight">Configure Interview</h1>
+                <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">API Active</span>
+                </div>
+              </div>
+              <p className="text-slate-400 mt-1 font-medium">Tell Mockly AI the role you are aiming for.</p>
             </div>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start space-x-3 text-red-400">
+          {error === 'QUOTA_EXCEEDED' || error?.toLowerCase().includes('quota') || error?.toLowerCase().includes('exhausted') || error?.includes('429') ? (
+            <div className="mb-8 p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-5 text-amber-200 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
+               <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/30 flex-shrink-0 relative z-10 shadow-lg shadow-amber-500/20">
+                  <AlertCircle className="w-7 h-7 text-amber-400" />
+               </div>
+               <div className="text-center sm:text-left flex-1 relative z-10">
+                  <h3 className="text-xl font-black text-amber-400 mb-1.5 tracking-tight">API Tokens Exhausted</h3>
+                  <p className="text-amber-200/90 leading-relaxed font-medium">
+                     Sorry, we are out of AI tokens for today! Since we are a free platform, we operate on a daily usage limit to accommodate everyone. Please check back later.
+                  </p>
+               </div>
+            </div>
+          ) : error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start space-x-3 text-red-400 animate-in fade-in">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
