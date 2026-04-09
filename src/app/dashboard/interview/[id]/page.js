@@ -182,7 +182,7 @@ export default function InterviewRoom({ params }) {
           if (isListeningRef.current && !isEvaluatingRef.current && !isFinishedRef.current) {
             try { rec.start(); } catch (_) {}
           }
-        }, 150);
+        }, 50);
       }
     };
 
@@ -372,7 +372,7 @@ export default function InterviewRoom({ params }) {
       const utt   = new SpeechSynthesisUtterance(text);
       const voice = getBestVoice();
       if (voice) { utt.voice = voice; utt.lang = voice.lang; } else { utt.lang = 'en-US'; }
-      utt.rate = 0.88; utt.pitch = 1.05; utt.volume = 1;
+      utt.rate = 0.94; utt.pitch = 1.0; utt.volume = 1;
 
       // Boundary watchdog: if onboundary stops for 3.5s while TTS still speaks
       // (Chrome bug after 10-12 utterances), degrade gracefully by clearing highlight
@@ -760,8 +760,8 @@ export default function InterviewRoom({ params }) {
                       <h3 className="text-base sm:text-xl md:text-3xl font-semibold leading-snug">
                         {isSpeaking && spokenWordIndex >= 0 ? (
                           <>
-                            <span className="text-white">{q.question.substring(0, spokenWordIndex)}</span>
-                            <span className="text-white bg-indigo-500/40 px-0.5 rounded shadow-[0_0_10px_rgba(99,102,241,0.5)] inline-block">
+                            <span className="text-white/80">{q.question.substring(0, spokenWordIndex)}</span>
+                            <span className="text-white bg-indigo-500/80 px-1.5 py-0.5 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.7)] inline-block transform scale-110 transition-transform duration-150 mx-0.5">
                               {q.question.substring(spokenWordIndex).match(/^\S+/)?.[0] || ''}
                             </span>
                             <span className="text-white/40">{q.question.substring(spokenWordIndex).replace(/^\S+/, '')}</span>

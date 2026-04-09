@@ -138,17 +138,17 @@ export default function DashboardPage() {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        /* Mobile: moderate speed */
+        /* Mobile: very slow speed */
         .ticker-track {
           display: flex;
           width: max-content;
-          animation: ticker-scroll 75s linear infinite;
+          animation: ticker-scroll 400s linear infinite;
           will-change: transform;
         }
-        /* Desktop: slow and readable */
+        /* Desktop: extremely slow and readable */
         @media (min-width: 768px) {
           .ticker-track {
-            animation-duration: 120s;
+            animation-duration: 600s;
           }
         }
         .ticker-track:hover {
