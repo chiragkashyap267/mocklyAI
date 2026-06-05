@@ -17,7 +17,6 @@ export default function ResumesPage() {
   const [user, setUser] = useState(null);
   const [isLoadingResumes, setIsLoadingResumes] = useState(true);
 
-  // Listen to Auth State
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -41,7 +40,7 @@ export default function ResumesPage() {
       querySnapshot.forEach((doc) => {
         fetchedResumes.push({ id: doc.id, ...doc.data() });
       });
-      // Sort manually since compound index might fail without setup
+      // sort manually since we don't have a compound index set up in Firestore
       fetchedResumes.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
       setResumes(fetchedResumes);
     } catch (error) {
@@ -84,8 +83,7 @@ export default function ResumesPage() {
       setIsUploading(true);
       setStatus('parsing');
 
-      // 1. Send PDF to our API Route to parse text
-      const formData = new FormData();
+    const formData = new FormData();
       formData.append('file', file);
 
       const parseRes = await fetch('/api/parse-resume', {
@@ -110,7 +108,6 @@ export default function ResumesPage() {
 
       const extractedText = data.text;
 
-      // 2. Save the extracted text to Firebase Firestore
       setStatus('saving');
       
       const newResume = {

@@ -13,18 +13,18 @@ import {
 } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// score color per experience level
 const LEVEL_COLORS = {
   'Internship':         { bg: 'bg-green-500/10',  border: 'border-green-500/20',  text: 'text-green-400'  },
   'Junior / Entry-Level':{ bg: 'bg-blue-500/10',  border: 'border-blue-500/20',   text: 'text-blue-400'   },
   'Mid-Level':          { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', text: 'text-indigo-400' },
-  'Senior':             { bg: 'bg-orange-500/10', border: 'border-orange-500/20', text: 'text-orange-400' },
+  'Senior':             { bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400' },
   'Lead / Manager':     { bg: 'bg-red-500/10',    border: 'border-red-500/20',    text: 'text-red-400'    },
 };
 
 const getLevelStyle = (level) => LEVEL_COLORS[level] || LEVEL_COLORS['Mid-Level'];
 
-// Calculate separate technical + HR scores from questions + answers
+// break down scores by question type
 const calcScores = (questions = [], answers = []) => {
   let techTotal = 0, techCount = 0;
   let hrTotal   = 0, hrCount   = 0;
@@ -141,10 +141,10 @@ function LeaderboardContent() {
 
       {/* Header */}
       <div className="text-center relative py-10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
-        <Trophy className="w-16 h-16 text-amber-400 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(251,191,36,0.3)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/8 rounded-full blur-[100px] pointer-events-none -z-10" />
+        <Trophy className="w-16 h-16 text-indigo-400 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(99,102,241,0.25)]" />
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-3">
-          Global <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Hall of Fame</span>
+          Global <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Hall of Fame</span>
         </h1>
         <p className="text-slate-400 text-base max-w-2xl mx-auto">
           Scores are broken down by <span className="text-cyan-400 font-semibold">Technical</span> and{' '}
@@ -187,14 +187,14 @@ function LeaderboardContent() {
               let rankStyle  = 'bg-[#0a0a0a] border-white/5';
               let medalIcon  = <span className="text-lg font-bold w-6 text-center text-slate-500">{idx + 1}</span>;
               if (idx === 0) {
-                rankStyle = 'bg-gradient-to-r from-amber-500/15 to-transparent border-amber-500/30 shadow-[0_0_30px_rgba(251,191,36,0.08)]';
-                medalIcon = <Medal className="w-8 h-8 text-amber-400 drop-shadow-[0_0_5px_rgba(251,191,36,0.5)]" />;
+                rankStyle = 'bg-gradient-to-r from-indigo-500/12 to-transparent border-indigo-500/25 shadow-[0_0_24px_rgba(99,102,241,0.06)]';
+                medalIcon = <Medal className="w-8 h-8 text-indigo-400" />;
               } else if (idx === 1) {
-                rankStyle = 'bg-gradient-to-r from-slate-300/10 to-transparent border-slate-300/30';
+                rankStyle = 'bg-gradient-to-r from-slate-300/8 to-transparent border-slate-300/20';
                 medalIcon = <Medal className="w-7 h-7 text-slate-300" />;
               } else if (idx === 2) {
-                rankStyle = 'bg-gradient-to-r from-orange-700/15 to-transparent border-orange-700/30';
-                medalIcon = <Medal className="w-6 h-6 text-orange-400" />;
+                rankStyle = 'bg-gradient-to-r from-violet-500/10 to-transparent border-violet-500/20';
+                medalIcon = <Medal className="w-6 h-6 text-violet-400" />;
               }
 
               // Attach ref to the auto-expand target row
@@ -280,7 +280,7 @@ function LeaderboardContent() {
                     <div className="flex items-center sm:ml-4 space-x-4 sm:flex-shrink-0 justify-between sm:justify-end border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0">
                       <div className="flex flex-col items-start sm:items-end sm:text-right">
                         <div className="flex items-center space-x-1">
-                          <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                          <Star className="w-5 h-5 text-indigo-400 fill-indigo-400" />
                           <span className="text-3xl font-black tracking-tighter text-white">
                             {entry.overall?.toFixed(1)}
                           </span>
@@ -307,7 +307,7 @@ function LeaderboardContent() {
                       <div className="grid grid-cols-3 gap-4 mb-6 pb-6 border-b border-white/8">
                         <div className="text-center">
                           <div className="flex items-center justify-center space-x-1 mb-1">
-                            <BarChart3 className="w-4 h-4 text-amber-400" />
+                            <BarChart3 className="w-4 h-4 text-indigo-400" />
                             <span className="text-2xl font-black text-white">{entry.overall?.toFixed(1)}</span>
                             <span className="text-slate-500 text-sm">/10</span>
                           </div>
@@ -363,7 +363,7 @@ function LeaderboardContent() {
                                   scoreVal >= 8
                                     ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
                                     : scoreVal >= 5
-                                      ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                                      ? 'text-indigo-300 bg-indigo-500/10 border-indigo-500/20'
                                       : 'text-red-400 bg-red-500/10 border-red-500/20'
                                 }`}>
                                   {scoreVal ?? '?'}/10
@@ -380,9 +380,9 @@ function LeaderboardContent() {
                                     <p className="text-emerald-200 text-sm">{ans.evaluation?.feedback}</p>
                                   </div>
                                   {ans.evaluation?.improvement && (
-                                    <div className="bg-amber-500/8 p-3 rounded-lg border border-amber-500/15">
-                                      <p className="text-amber-200 text-sm">
-                                        <strong className="text-amber-400 block mb-0.5">💡 To Improve:</strong>
+                                    <div className="bg-indigo-500/6 p-3 rounded-lg border border-indigo-500/12">
+                                      <p className="text-slate-300 text-sm">
+                                        <strong className="text-indigo-400 block mb-0.5">💡 To Improve:</strong>
                                         {ans.evaluation.improvement}
                                       </p>
                                     </div>

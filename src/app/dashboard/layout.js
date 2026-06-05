@@ -11,7 +11,6 @@ import { auth, db } from '@/lib/firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// ── College list ────────────────────────────────────────────────────────────
 const PRESET_COLLEGES = [
   'GB PANT ENGINEERING COLLEGE',
   'G.B.P.U.A.T',
@@ -23,20 +22,19 @@ const PRESET_COLLEGES = [
   'UK TECH UTTRAKHAND'
 ];
 
-// ── Profile Setup Modal ─────────────────────────────────────────────────────
 function ProfileSetupModal({ user, onComplete }) {
-  const [name,            setName]            = useState(user?.displayName || '');
-  const [collegeQuery,    setCollegeQuery]    = useState('');
+  const [name, setName] = useState(user?.displayName || '');
+  const [collegeQuery, setCollegeQuery] = useState('');
   const [selectedCollege, setSelectedCollege] = useState('');
-  const [otherCollege,    setOtherCollege]    = useState('');
-  const [isDropdownOpen,  setIsDropdownOpen]  = useState(false);
-  const [saving,          setSaving]          = useState(false);
-  const [nameError,       setNameError]       = useState('');
-  const [collegeError,    setCollegeError]    = useState('');
+  const [otherCollege, setOtherCollege] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [collegeError, setCollegeError] = useState('');
   const dropdownRef = useRef(null);
 
   const finalCollege = selectedCollege === 'Others' ? otherCollege.trim() : selectedCollege;
-  const canSave      = name.trim().length >= 2 && finalCollege.length >= 2;
+  const canSave = name.trim().length >= 2 && finalCollege.length >= 2;
 
   const filtered = PRESET_COLLEGES.filter(c =>
     c.toLowerCase().includes(collegeQuery.toLowerCase())
@@ -60,19 +58,28 @@ function ProfileSetupModal({ user, onComplete }) {
 
   const handleSave = async () => {
     let valid = true;
-    if (name.trim().length < 2)    { setNameError('Please enter your full name (min 2 chars).'); valid = false; }
-    else setNameError('');
-    if (!finalCollege || finalCollege.length < 2) { setCollegeError('Please select or enter your college name.'); valid = false; }
-    else setCollegeError('');
+    if (name.trim().length < 2) {
+      setNameError('Please enter your full name (min 2 chars).');
+      valid = false;
+    } else {
+      setNameError('');
+    }
+    if (!finalCollege || finalCollege.length < 2) {
+      setCollegeError('Please select or enter your college name.');
+      valid = false;
+    } else {
+      setCollegeError('');
+    }
     if (!valid) return;
+
     setSaving(true);
     try {
       await setDoc(doc(db, 'users', user.uid), {
         displayName: name.trim(),
-        institute:   finalCollege,
-        email:       user.email,
-        photoURL:    user.photoURL || '',
-        updatedAt:   new Date(),
+        institute: finalCollege,
+        email: user.email,
+        photoURL: user.photoURL || '',
+        updatedAt: new Date(),
       }, { merge: true });
       onComplete();
     } catch (err) {
@@ -98,7 +105,6 @@ function ProfileSetupModal({ user, onComplete }) {
             </div>
           </div>
 
-          {/* Name */}
           <div className="space-y-1.5 mb-4">
             <label className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 ml-1">
               <User className="w-3.5 h-3.5 text-indigo-400" />Full Name <span className="text-red-400">*</span>
@@ -113,7 +119,6 @@ function ProfileSetupModal({ user, onComplete }) {
             {nameError && <p className="text-red-400 text-xs ml-1">{nameError}</p>}
           </div>
 
-          {/* College dropdown */}
           <div className="space-y-1.5 mb-5" ref={dropdownRef}>
             <label className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 ml-1">
               <Building2 className="w-3.5 h-3.5 text-emerald-400" />College / Institute <span className="text-red-400">*</span>
@@ -145,7 +150,7 @@ function ProfileSetupModal({ user, onComplete }) {
                   </div>
                   <div className="max-h-40 overflow-y-auto custom-scrollbar py-1">
                     {filtered.length === 0 && (
-                      <p className="text-slate-600 text-xs px-4 py-3">No match — select "Others" below.</p>
+                      <p className="text-slate-600 text-xs px-4 py-3">No match — select &quot;Others&quot; below.</p>
                     )}
                     {filtered.map((c) => (
                       <button key={c} type="button" onClick={() => selectCollege(c)}
@@ -192,15 +197,14 @@ function ProfileSetupModal({ user, onComplete }) {
   );
 }
 
-// ── Dashboard Layout ────────────────────────────────────────────────────────
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [currentUser,      setCurrentUser]      = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // True when user is inside an active interview room (not setup)
+  // true when inside an active interview room (not just setup)
   const isInterviewRoom = /^\/dashboard\/interview\/[^/]+$/.test(pathname);
 
   useEffect(() => {
@@ -215,37 +219,45 @@ export default function DashboardLayout({ children }) {
         } else {
           setShowProfileModal(true);
         }
-      } catch { /* silent */ }
+      } catch {
+        // ignore, profile modal can be shown next time
+      }
     });
     return () => unsub();
   }, []);
 
   const handleLogout = async () => {
-    try { await signOut(auth); router.push('/login'); } catch { /* silent */ }
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch {
+      // ignore
+    }
   };
 
-  const closeMobileMenu = () => { if (isMobileMenuOpen) setIsMobileMenuOpen(false); };
+  const closeMobileMenu = () => {
+    if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+  };
 
   const navLinks = [
-    { name: 'Dashboard',   href: '/dashboard',             icon: Home },
-    { name: 'My Resumes',  href: '/dashboard/resumes',     icon: FileText },
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'My Resumes', href: '/dashboard/resumes', icon: FileText },
     { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Activity },
-    { name: 'Settings',    href: '/dashboard/settings',    icon: Settings },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
   return (
     <div className="flex bg-[#0a0a0a] text-white overflow-hidden relative selection:bg-indigo-500/30"
          style={{ height: '100dvh' }}>
-      {/* Background glow */}
+      {/* bg glow */}
       <div className="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-indigo-900/20 rounded-full blur-[140px] pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-blue-900/10 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Profile modal */}
       {showProfileModal && currentUser && (
         <ProfileSetupModal user={currentUser} onComplete={() => setShowProfileModal(false)} />
       )}
 
-      {/* ── Mobile top navbar ── */}
+      {/* mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/10 z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-lg border border-indigo-500/30">
@@ -261,12 +273,11 @@ export default function DashboardLayout({ children }) {
         </button>
       </div>
 
-      {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" onClick={closeMobileMenu} />
       )}
 
-      {/* ── Sidebar ── */}
+      {/* sidebar */}
       <aside className={`
         fixed md:relative z-[70] w-72 flex flex-col
         bg-[#0a0a0a]/95 md:bg-white/[0.03] backdrop-blur-3xl border-r border-white/10
@@ -289,8 +300,8 @@ export default function DashboardLayout({ children }) {
 
         <nav className="flex-1 px-4 space-y-2">
           {navLinks.map((link) => {
-            const Icon         = link.icon;
-            const isActive     = pathname === link.href;
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
             const isLeaderboard = link.name === 'Leaderboard';
             return (
               <Link
@@ -299,29 +310,29 @@ export default function DashboardLayout({ children }) {
                 onClick={closeMobileMenu}
                 className={`group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive && isLeaderboard
-                    ? 'bg-gradient-to-r from-orange-500/20 to-amber-500/5 text-orange-300 border border-orange-500/30 shadow-[0_0_12px_rgba(249,115,22,0.1)]'
+                    ? 'bg-gradient-to-r from-teal-500/12 to-transparent text-teal-300 border border-teal-500/20'
                     : isActive
                     ? 'bg-gradient-to-r from-indigo-500/10 to-transparent text-indigo-300 border border-indigo-500/20'
                     : isLeaderboard
-                    ? 'text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 border border-orange-500/10 hover:border-orange-500/25'
+                    ? 'text-teal-400/80 hover:text-teal-300 hover:bg-teal-500/6 border border-transparent hover:border-teal-500/15'
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className={`w-5 h-5 ${
                     isLeaderboard
-                      ? (isActive ? 'text-orange-400' : 'text-orange-400/80')
+                      ? (isActive ? 'text-teal-400' : 'text-teal-500/70')
                       : isActive ? 'text-indigo-400' : 'group-hover:text-indigo-300'
                   }`} />
                   <span className="font-medium text-sm">{link.name}</span>
                   {isLeaderboard && (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-[0_0_12px_rgba(249,115,22,0.6)] border border-orange-400/30">
-                      HOT 🔥
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold text-teal-200 bg-teal-500/12 border border-teal-500/20">
+                      TOP
                     </span>
                   )}
                 </div>
                 {isActive && (
-                  <div className={`w-1.5 h-1.5 rounded-full ${isLeaderboard ? 'bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'bg-indigo-400'}`} />
+                  <div className={`w-1.5 h-1.5 rounded-full ${isLeaderboard ? 'bg-teal-400' : 'bg-indigo-400'}`} />
                 )}
               </Link>
             );
@@ -339,10 +350,10 @@ export default function DashboardLayout({ children }) {
         </div>
       </aside>
 
-      {/* ── Main content ──
-          Interview room: overflow-hidden (card handles its own scroll)
-          All other pages: overflow-y-auto (natural page scroll)
-      ── */}
+      {/*
+        Interview room: overflow-hidden (the card manages its own scroll)
+        Other pages: normal overflow-y-auto
+      */}
       <main
         className={`flex-1 relative z-10 overflow-x-hidden flex flex-col pt-14 md:pt-0 ${
           isInterviewRoom ? 'overflow-hidden' : 'overflow-y-auto'
@@ -350,12 +361,10 @@ export default function DashboardLayout({ children }) {
         style={{ height: '100dvh' }}
       >
         {isInterviewRoom ? (
-          /* Interview room: full-height, no padding, children fill everything */
           <div className="flex-1 min-h-0 flex flex-col p-2 sm:p-3 md:p-6">
             {children}
           </div>
         ) : (
-          /* Other pages: normal scrollable layout with padding */
           <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 md:p-10 pb-24 space-y-6 md:space-y-8">
             {children}
           </div>

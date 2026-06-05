@@ -50,7 +50,6 @@ export default function DashboardPage() {
           snap.forEach(docSnap => {
             const data = docSnap.data();
             if (data.userId) uniqueUsers.add(data.userId);
-            // Since query is ordered desc, first match = most recent
             if (data.userId === user.uid && myLatestInterviewId === null) {
               myLatestInterviewId = docSnap.id;
             }
@@ -131,38 +130,28 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
 
-      {/* ── Injected Styles ────────────────────────────────────── */}
       <style>{`
-        /* Seamless marquee: container scrolls exactly half its own width */
         @keyframes ticker-scroll {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        /* Mobile: very slow speed */
         .ticker-track {
           display: flex;
           width: max-content;
           animation: ticker-scroll 400s linear infinite;
           will-change: transform;
         }
-        /* Desktop: extremely slow and readable */
         @media (min-width: 768px) {
-          .ticker-track {
-            animation-duration: 600s;
-          }
+          .ticker-track { animation-duration: 600s; }
         }
-        .ticker-track:hover {
-          animation-play-state: paused;
+        .ticker-track:hover { animation-play-state: paused; }
+
+        @keyframes indigo-pulse {
+          0%, 100% { box-shadow: 0 0 18px 2px rgba(99,102,241,0.30), 0 0 40px 0 rgba(99,102,241,0.10); }
+          50%       { box-shadow: 0 0 28px 5px rgba(99,102,241,0.45), 0 0 60px 4px rgba(99,102,241,0.18); }
         }
-        /* Orange pulse glow keyframe */
-        @keyframes orange-pulse {
-          0%, 100% { box-shadow: 0 0 18px 2px rgba(251,146,60,0.35), 0 0 40px 0 rgba(251,146,60,0.15); }
-          50%       { box-shadow: 0 0 30px 6px rgba(251,146,60,0.55), 0 0 60px 4px rgba(251,146,60,0.25); }
-        }
-        .btn-orange-glow {
-          animation: orange-pulse 2.4s ease-in-out infinite;
-        }
-        /* Evaluation CTA shimmer */
+        .btn-indigo-glow { animation: indigo-pulse 2.6s ease-in-out infinite; }
+
         @keyframes shimmer-slide {
           0%   { background-position: -200% center; }
           100% { background-position: 200% center; }
@@ -170,13 +159,13 @@ export default function DashboardPage() {
         .eval-shimmer {
           background: linear-gradient(
             90deg,
-            rgba(251,146,60,0) 0%,
-            rgba(251,146,60,0.4) 40%,
-            rgba(251,146,60,0.4) 60%,
-            rgba(251,146,60,0) 100%
+            rgba(99,102,241,0) 0%,
+            rgba(99,102,241,0.25) 40%,
+            rgba(139,92,246,0.25) 60%,
+            rgba(99,102,241,0) 100%
           );
           background-size: 200% 100%;
-          animation: shimmer-slide 2s linear infinite;
+          animation: shimmer-slide 2.5s linear infinite;
         }
         @keyframes wiggle {
           0%, 100% { transform: rotate(-3deg); }
@@ -186,9 +175,9 @@ export default function DashboardPage() {
         html { scroll-behavior: smooth; }
       `}</style>
 
-      {/* ── Welcome Banner ──────────────────────────────────────── */}
+      {/* welcome banner */}
       <div className="bg-[#0f0f18] border border-white/5 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden backdrop-blur-xl">
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-indigo-500/20 via-purple-500/5 to-transparent rounded-full blur-[80px] pointer-events-none -mt-40 -mr-40" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-indigo-500/15 via-violet-500/5 to-transparent rounded-full blur-[80px] pointer-events-none -mt-40 -mr-40" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           {/* Left: greeting */}
@@ -202,7 +191,7 @@ export default function DashboardPage() {
                   Hi, {stats.profile?.displayName || 'Candidate'} 👋
                 </h1>
                 {stats.profile?.institute && (
-                  <p className="text-emerald-400 flex items-center font-medium mt-1 text-sm">
+                  <p className="text-teal-400 flex items-center font-medium mt-1 text-sm">
                     <Building2 className="w-4 h-4 mr-1.5 flex-shrink-0" />
                     <span className="break-words">{stats.profile.institute}</span>
                   </p>
@@ -217,9 +206,9 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
               <div className="text-center">
                 <p className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1">Global Rank</p>
-                <div className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 px-4 py-2 rounded-xl">
-                  <Medal className="w-5 h-5 text-amber-400" />
-                  <span className="text-xl sm:text-2xl font-black text-amber-500">
+                <div className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl">
+                  <Medal className="w-5 h-5 text-indigo-400" />
+                  <span className="text-xl sm:text-2xl font-black text-indigo-300">
                     {stats.rank ? `#${stats.rank}` : '---'}
                   </span>
                 </div>
@@ -227,8 +216,8 @@ export default function DashboardPage() {
 
               <div className="text-center">
                 <p className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1">Competitors</p>
-                <div className="flex items-center justify-center gap-1.5 bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-xl">
-                  <Users className="w-4 h-4 text-blue-400" />
+                <div className="flex items-center justify-center gap-1.5 bg-slate-500/10 border border-slate-500/20 px-4 py-2 rounded-xl">
+                  <Users className="w-4 h-4 text-slate-400" />
                   <span className="text-xl font-bold text-white">{stats.totalStudents}</span>
                 </div>
               </div>
@@ -236,13 +225,13 @@ export default function DashboardPage() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* Start Interview – Orange glow */}
+              {/* Start Interview – professional indigo */}
               <a href="#interview-start-section" className="flex-1 sm:flex-none">
                 <button
                   id="btn-start-interview"
-                  className="btn-orange-glow w-full group relative flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-extrabold text-white transition-all hover:scale-105 active:scale-95 border border-orange-400/50 text-sm sm:text-base"
+                  className="btn-indigo-glow w-full group relative flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-extrabold text-white transition-all hover:scale-105 active:scale-95 border border-indigo-500/40 text-sm sm:text-base"
                   style={{
-                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%)',
                   }}
                 >
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
@@ -250,20 +239,20 @@ export default function DashboardPage() {
                 </button>
               </a>
 
-              {/* Check Rank – Orange subtle glow */}
+              {/* Check Rank – soft violet outline */}
               <Link href="/dashboard/leaderboard" className="flex-1 sm:flex-none">
                 <button
                   id="btn-check-rank"
-                  className="w-full group relative flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 active:scale-95 border border-orange-500/30 text-sm sm:text-base"
+                  className="w-full group relative flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 active:scale-95 border border-violet-500/25 text-sm sm:text-base"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(251,146,60,0.18) 0%, rgba(234,88,12,0.10) 100%)',
-                    boxShadow: '0 0 18px 0 rgba(251,146,60,0.20)',
+                    background: 'linear-gradient(135deg, rgba(109,40,217,0.15) 0%, rgba(99,102,241,0.08) 100%)',
+                    boxShadow: '0 0 16px 0 rgba(99,102,241,0.12)',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 28px 4px rgba(251,146,60,0.40)'}
-                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 18px 0 rgba(251,146,60,0.20)'}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 24px 2px rgba(99,102,241,0.28)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 16px 0 rgba(99,102,241,0.12)'}
                 >
-                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 group-hover:-rotate-12 transition-transform" />
-                  <span className="text-orange-100">CHECK YOUR RANK</span>
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400 group-hover:-rotate-12 transition-transform" />
+                  <span className="text-violet-200">CHECK YOUR RANK</span>
                 </button>
               </Link>
             </div>
@@ -274,7 +263,7 @@ export default function DashboardPage() {
         <div className="mt-6 pt-5 border-t border-white/5">
           <p className="text-slate-300 text-sm sm:text-base">
             <strong className="text-indigo-400 font-bold">{stats.totalStudents} students</strong> from{' '}
-            <strong className="text-emerald-400 font-bold">{stats.totalColleges} colleges</strong> are currently registered on Mockly AI.{' '}
+            <strong className="text-teal-400 font-bold">{stats.totalColleges} colleges</strong> are currently registered on Mockly AI.{' '}
             {stats.rank
               ? `You're ranked #${stats.rank} globally — keep going! 🚀`
               : 'Complete an interview to secure your spot on the Global Leaderboard!'}
@@ -282,28 +271,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Live Ticker Strip ───────────────────────────────────── */}
+      {/* live leaderboard ticker */}
       {stats.topCandidates?.length > 0 && (() => {
-        // Duplicate enough times so the track is always wider than the viewport
         const items = Array(10).fill(null).flatMap(() => stats.topCandidates);
-        // Duplicate the items array once more for seamless 50% scroll
         const doubled = [...items, ...items];
         return (
           <div
             id="leaderboard-ticker"
             className="w-full rounded-2xl sm:rounded-3xl relative overflow-hidden"
             style={{
-              background: 'linear-gradient(90deg, #0a0a0f 0%, #12091a 50%, #0a0a0f 100%)',
-              border: '1.5px solid rgba(139,92,246,0.35)',
-              boxShadow: '0 0 32px rgba(124,58,237,0.2)',
+              background: 'linear-gradient(90deg, #0a0a0f 0%, #0d0d1a 50%, #0a0a0f 100%)',
+              border: '1.5px solid rgba(99,102,241,0.25)',
+              boxShadow: '0 0 24px rgba(99,102,241,0.10)',
             }}
           >
-            {/* Top gradient border line */}
-            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-fuchsia-500 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
 
             <div className="flex items-center" style={{ height: '52px' }}>
-              {/* LIVE badge – fixed left, fades into bg */}
+              {/* LIVE badge */}
               <div
                 className="flex-shrink-0 flex items-center z-20 pr-6"
                 style={{
@@ -312,59 +298,54 @@ export default function DashboardPage() {
                   height: '100%',
                 }}
               >
-                <div className="relative flex items-center gap-1.5 bg-rose-500/10 border border-rose-500/25 px-2.5 py-1 rounded-full">
-                  <span className="absolute w-2 h-2 rounded-full bg-rose-500 animate-ping opacity-75" />
-                  <span className="relative w-2 h-2 rounded-full bg-rose-500" />
-                  <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">LIVE</span>
+                <div className="relative flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
+                  <span className="absolute w-2 h-2 rounded-full bg-indigo-400 animate-ping opacity-75" />
+                  <span className="relative w-2 h-2 rounded-full bg-indigo-400" />
+                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">LIVE</span>
                 </div>
               </div>
 
               {/* Scrolling track */}
               <div className="flex-1 overflow-hidden" style={{ height: '100%', display: 'flex', alignItems: 'center' }}>
-                {/* ticker-track contains 2× the items; animation moves it by -50% = exactly 1× */}
                 <div className="ticker-track">
                   {doubled.map((cand, idx) => (
                     <div
                       key={idx}
                       className="flex items-center flex-shrink-0 whitespace-nowrap"
-                      style={{ padding: '0 32px', borderRight: '1px solid rgba(255,255,255,0.05)' }}
+                      style={{ padding: '0 32px', borderRight: '1px solid rgba(255,255,255,0.04)' }}
                     >
-                      {/* Rank medal */}
                       <Medal
                         className={`w-4 h-4 mr-2 flex-shrink-0 ${
-                          cand.rank === 1 ? 'text-amber-400'
+                          cand.rank === 1 ? 'text-indigo-300'
                           : cand.rank === 2 ? 'text-slate-300'
-                          : cand.rank === 3 ? 'text-orange-400'
-                          : 'text-indigo-400'
+                          : cand.rank === 3 ? 'text-violet-400'
+                          : 'text-slate-500'
                         }`}
                       />
-                      {/* Rank badge */}
                       <span
                         className="text-xs font-black mr-2.5 px-2 py-0.5 rounded-full"
                         style={{
                           background: cand.rank === 1
-                            ? 'linear-gradient(90deg,#f59e0b,#ef4444)'
-                            : 'rgba(99,102,241,0.2)',
-                          color: cand.rank === 1 ? '#fff' : '#a5b4fc',
+                            ? 'linear-gradient(90deg,#4f46e5,#7c3aed)'
+                            : 'rgba(99,102,241,0.12)',
+                          color: cand.rank === 1 ? '#e0e7ff' : '#a5b4fc',
                           border: cand.rank === 1
-                            ? '1px solid rgba(245,158,11,0.5)'
-                            : '1px solid rgba(99,102,241,0.3)',
+                            ? '1px solid rgba(99,102,241,0.5)'
+                            : '1px solid rgba(99,102,241,0.2)',
                         }}
                       >
                         #{cand.rank}
                       </span>
-                      {/* Name */}
                       <span className="text-white font-black text-sm mr-1.5">{cand.name}</span>
-                      {/* College */}
                       {cand.institute && (
                         <>
                           <span className="text-slate-500 text-xs font-normal mr-1.5">from</span>
                           <span
                             className="text-xs font-bold px-2.5 py-0.5 rounded-full mr-1.5"
                             style={{
-                              background: 'rgba(16,185,129,0.10)',
-                              color: '#34d399',
-                              border: '1px solid rgba(16,185,129,0.20)',
+                              background: 'rgba(20,184,166,0.08)',
+                              color: '#5eead4',
+                              border: '1px solid rgba(20,184,166,0.15)',
                               maxWidth: '240px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -377,19 +358,18 @@ export default function DashboardPage() {
                           </span>
                         </>
                       )}
-                      {/* Secured rank text */}
                       <span className="text-slate-500 text-xs mr-1">secured rank</span>
                       <span
                         className="text-xs font-black mr-1"
                         style={{
-                          background: 'linear-gradient(90deg,#e879f9,#f43f5e)',
+                          background: 'linear-gradient(90deg,#818cf8,#a78bfa)',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
                         }}
                       >
                         #{cand.rank}
                       </span>
-                      <span className="ml-1 text-sm">🔥</span>
+                      <span className="ml-1 text-sm">✨</span>
                     </div>
                   ))}
                 </div>
@@ -398,76 +378,73 @@ export default function DashboardPage() {
               {/* Right fade overlay */}
               <div
                 className="flex-shrink-0 w-12 sm:w-20 pointer-events-none"
-                style={{
-                  height: '100%',
-                  background: 'linear-gradient(to left, #0a0a0f 0%, transparent 100%)',
-                }}
+                style={{ height: '100%', background: 'linear-gradient(to left, #0a0a0f 0%, transparent 100%)' }}
               />
             </div>
           </div>
         );
       })()}
 
-      {/* ── Stats Cards ─────────────────────────────────────────── */}
+      {/* stats overview cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+        <div className="bg-white/[0.03] border border-white/8 rounded-2xl sm:rounded-3xl p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden group hover:border-indigo-500/25 transition-colors">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/8 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
           <div className="flex items-center justify-between relative z-10">
             <div>
               <p className="text-slate-400 text-sm font-medium mb-1">Total Interviews</p>
               <h3 className="text-3xl font-bold text-white">{stats.interviews}</h3>
             </div>
-            <div className="p-3 bg-indigo-500/20 text-indigo-400 rounded-2xl border border-indigo-500/20">
+            <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-2xl border border-indigo-500/15">
               <TrendingUp className="w-6 h-6" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+        <div className="bg-white/[0.03] border border-white/8 rounded-2xl sm:rounded-3xl p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden group hover:border-teal-500/25 transition-colors">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/8 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
           <div className="flex items-center justify-between relative z-10">
             <div>
               <p className="text-slate-400 text-sm font-medium mb-1">Average Score</p>
               <h3 className="text-3xl font-bold text-white">{stats.averageScore}%</h3>
             </div>
-            <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/20">
+            <div className="p-3 bg-teal-500/10 text-teal-400 rounded-2xl border border-teal-500/15">
               <Trophy className="w-6 h-6" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden group hover:border-purple-500/30 transition-colors">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+        <div className="bg-white/[0.03] border border-white/8 rounded-2xl sm:rounded-3xl p-5 sm:p-6 backdrop-blur-xl relative overflow-hidden group hover:border-violet-500/25 transition-colors">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/8 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
           <div className="flex items-center justify-between relative z-10">
             <div>
               <p className="text-slate-400 text-sm font-medium mb-1">Resumes Uploaded</p>
               <h3 className="text-3xl font-bold text-white">{stats.resumes} / 5</h3>
             </div>
-            <div className="p-3 bg-purple-500/20 text-purple-400 rounded-2xl border border-purple-500/20">
+            <div className="p-3 bg-violet-500/10 text-violet-400 rounded-2xl border border-violet-500/15">
               <FileUp className="w-6 h-6" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Interview Evaluations CTA ────────────────────────────── */}
+      {/* evaluations CTA section */}
       <div
         id="evaluations-section"
         className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-[1.5px]"
         style={{
-          background: 'linear-gradient(135deg, rgba(251,146,60,0.6) 0%, rgba(168,85,247,0.5) 50%, rgba(251,146,60,0.6) 100%)',
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.45) 0%, rgba(139,92,246,0.35) 50%, rgba(99,102,241,0.45) 100%)',
         }}
       >
         <div
           className="relative rounded-[22px] sm:rounded-[23px] overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #0f0a00 0%, #150b1e 60%, #0f0a00 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #080814 0%, #0e0b1e 60%, #080814 100%)' }}
         >
           {/* Background glows */}
-          <div className="absolute -left-16 top-1/2 -translate-y-1/2 w-48 h-48 bg-orange-500/20 rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute -right-16 top-1/2 -translate-y-1/2 w-48 h-48 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute -left-16 top-1/2 -translate-y-1/2 w-48 h-48 bg-indigo-600/12 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute -right-16 top-1/2 -translate-y-1/2 w-48 h-48 bg-violet-600/12 rounded-full blur-[80px] pointer-events-none" />
 
           {/* Shimmer sweep */}
-          <div className="absolute inset-0 pointer-events-none eval-shimmer opacity-30" />
+          <div className="absolute inset-0 pointer-events-none eval-shimmer opacity-40" />
 
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-5 p-6 sm:p-8">
             {/* Left content */}
@@ -475,17 +452,17 @@ export default function DashboardPage() {
               <div
                 className="flex-shrink-0 p-3 rounded-2xl border"
                 style={{
-                  background: 'rgba(251,146,60,0.12)',
-                  borderColor: 'rgba(251,146,60,0.30)',
+                  background: 'rgba(99,102,241,0.10)',
+                  borderColor: 'rgba(99,102,241,0.22)',
                 }}
               >
-                <ClipboardList className="w-7 h-7 sm:w-8 sm:h-8 wiggle-icon" style={{ color: '#fb923c' }} />
+                <ClipboardList className="w-7 h-7 sm:w-8 sm:h-8 wiggle-icon" style={{ color: '#818cf8' }} />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1 justify-center sm:justify-start">
-                  <Star className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-amber-400 text-xs font-black uppercase tracking-widest">New</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(251,146,60,0.15)', color: '#fdba74', border: '1px solid rgba(251,146,60,0.25)' }}>
+                  <Star className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-indigo-400 text-xs font-black uppercase tracking-widest">New</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.22)' }}>
                     AI Feedback Ready
                   </span>
                 </div>
@@ -493,7 +470,7 @@ export default function DashboardPage() {
                   Your Interview Evaluations Are Here! 🎯
                 </h2>
                 <p className="text-slate-400 text-sm mt-1 max-w-sm">
-                  See detailed AI feedback on every answer — your strengths, weak spots & how to rank higher.
+                  See detailed AI feedback on every answer — your strengths, weak spots &amp; how to rank higher.
                 </p>
               </div>
             </div>
@@ -509,18 +486,15 @@ export default function DashboardPage() {
                 id="btn-view-evaluations"
                 className="group relative w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 rounded-xl font-black text-white text-sm sm:text-base overflow-hidden transition-all hover:scale-105 active:scale-95"
                 style={{
-                  background: 'linear-gradient(135deg, #f97316 0%, #dc2626 50%, #9333ea 100%)',
-                  boxShadow: '0 0 24px rgba(251,146,60,0.45), 0 0 60px rgba(251,146,60,0.15)',
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                  boxShadow: '0 0 20px rgba(99,102,241,0.30), 0 0 50px rgba(99,102,241,0.08)',
                 }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 40px rgba(251,146,60,0.7), 0 0 80px rgba(251,146,60,0.25)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 24px rgba(251,146,60,0.45), 0 0 60px rgba(251,146,60,0.15)'}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 32px rgba(99,102,241,0.50), 0 0 70px rgba(99,102,241,0.15)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(99,102,241,0.30), 0 0 50px rgba(99,102,241,0.08)'}
               >
-                {/* Animated shine */}
                 <span
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)',
-                  }}
+                  style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.10) 50%, transparent 100%)' }}
                 />
                 <PlayCircle className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform" />
                 <span className="relative z-10 whitespace-nowrap">View My Evaluations</span>
@@ -531,14 +505,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Start New Interview CTA ──────────────────────────────── */}
+      {/* start interview section */}
       <div
         id="interview-start-section"
         className="w-full rounded-2xl sm:rounded-3xl p-px overflow-hidden scroll-mt-24"
-        style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.5) 0%, rgba(168,85,247,0.4) 100%)' }}
+        style={{ background: 'linear-gradient(135deg, rgba(79,70,229,0.40) 0%, rgba(124,58,237,0.30) 100%)' }}
       >
-        <div className="bg-[#0a0a0a]/90 backdrop-blur-xl rounded-[22px] sm:rounded-[23px] w-full p-6 sm:p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-600/30 blur-[100px] rounded-full pointer-events-none" />
+        <div className="bg-[#0a0a0f]/92 backdrop-blur-xl rounded-[22px] sm:rounded-[23px] w-full p-6 sm:p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-700/20 blur-[100px] rounded-full pointer-events-none" />
           <div className="relative z-10 flex-1 w-full">
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Want to practice a new role?</h2>
             <p className="text-slate-400 mb-6 max-w-lg text-sm sm:text-base">
@@ -546,13 +520,13 @@ export default function DashboardPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/dashboard/resumes" className="w-full sm:w-auto">
-                <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3.5 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 text-sm sm:text-base">
+                <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3.5 rounded-xl font-medium transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 text-sm sm:text-base">
                   <FileUp className="w-5 h-5" />
                   Upload Resume
                 </button>
               </Link>
               <Link href="/dashboard/interview/setup" className="w-full sm:w-auto">
-                <button className="w-full bg-white/10 hover:bg-white/20 text-white px-6 py-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 border border-white/10 text-sm sm:text-base">
+                <button className="w-full bg-white/6 hover:bg-white/10 text-white px-6 py-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 border border-white/8 text-sm sm:text-base">
                   Practice Without Resume
                 </button>
               </Link>

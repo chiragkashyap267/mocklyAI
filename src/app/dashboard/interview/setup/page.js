@@ -62,7 +62,6 @@ function SetupForm() {
         }
       }
 
-      // Call our Gemini backend
       const res = await fetch('/api/generate-questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,7 +78,7 @@ function SetupForm() {
         throw new Error(data.error || 'Failed to generate questions');
       }
 
-      // Save the Interview Session to Firebase
+      // create the interview doc in Firestore and redirect to the room
       const interviewSession = {
         userId: user.uid,
         resumeId: selectedResumeId || null,

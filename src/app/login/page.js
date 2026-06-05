@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Bot, Mail, Lock, ArrowLeft, Loader2, Sparkles, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
-// Only allow Gmail accounts through Google sign-in
+// only allow gmail for google sign-in
 const ALLOWED_GOOGLE_DOMAIN = '@gmail.com';
 
 export default function LoginPage() {
@@ -24,40 +24,41 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [highlightGoogle, setHighlightGoogle] = useState(false);
 
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const router = useRouter();
 
-  // Friendly Firebase error codes → readable messages
+  // maps firebase error codes to something users can actually understand
   const friendlyError = (code, fallback) => {
     const map = {
-      'auth/user-not-found':                    'No account found with this email. Please sign up first.',
-      'auth/wrong-password':                    'Incorrect password. Try again or use Forgot Password.',
-      'auth/invalid-credential':                'Incorrect email or password. Please try again.',
-      'auth/email-already-in-use':              'This email is already registered. Please sign in instead.',
-      'auth/weak-password':                     'Password must be at least 6 characters long.',
-      'auth/invalid-email':                     'Please enter a valid email address.',
-      'auth/too-many-requests':                 'Too many failed attempts. Please wait a few minutes and try again.',
+      'auth/user-not-found': 'No account found with this email. Please sign up first.',
+      'auth/wrong-password': 'Incorrect password. Try again or use Forgot Password.',
+      'auth/invalid-credential': 'Incorrect email or password. Please try again.',
+      'auth/email-already-in-use': 'This email is already registered. Please sign in instead.',
+      'auth/weak-password': 'Password must be at least 6 characters long.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/too-many-requests': 'Too many failed attempts. Please wait a few minutes and try again.',
       'auth/account-exists-with-different-credential':
         'This email is linked to a different sign-in method. Try signing in with Google instead.',
-      'auth/popup-closed-by-user':              'Sign-in popup was closed. Please try again.',
-      'auth/network-request-failed':            'Network error. Please check your internet connection.',
+      'auth/popup-closed-by-user': 'Sign-in popup was closed. Please try again.',
+      'auth/network-request-failed': 'Network error. Please check your internet connection.',
     };
     return map[code] || fallback || 'Something went wrong. Please try again.';
   };
 
-  // ── Google Sign-In (Gmail only) ────────────────────────────────────────────
   const handleGoogleSignIn = async () => {
     try {
-      setIsLoading(true); setError(''); setMessage('');
+      setIsLoading(true);
+      setError('');
+      setMessage('');
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
 
       const result = await signInWithPopup(auth, provider);
       const userEmail = result.user.email || '';
 
-      // Enforce Gmail only
       if (!userEmail.toLowerCase().endsWith(ALLOWED_GOOGLE_DOMAIN)) {
         await auth.signOut();
         setError(`Only Gmail accounts (@gmail.com) are allowed. You signed in with: ${userEmail}`);
@@ -72,12 +73,15 @@ export default function LoginPage() {
     }
   };
 
-  // ── Email/Password sign-in or sign-up ─────────────────────────────────────
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     if (!email || !password) return setError('Please enter both email and password.');
+
     try {
-      setIsLoading(true); setError(''); setMessage('');
+      setIsLoading(true);
+      setError('');
+      setMessage('');
+
       if (mode === 'sign_in') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
@@ -91,7 +95,7 @@ export default function LoginPage() {
           if (methods.includes('google.com')) {
             setError("This email is already registered using Google. Please click 'Sign in with Google' below.");
             setHighlightGoogle(true);
-            setTimeout(() => setHighlightGoogle(false), 5000); // remove highlight after 5s
+            setTimeout(() => setHighlightGoogle(false), 5000);
             setIsLoading(false);
             return;
           }
@@ -103,24 +107,23 @@ export default function LoginPage() {
     }
   };
 
-  // ── Forgot password (robust: check if email exists first) ─────────────────
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!email) return setError('Please enter your email address first.');
-    try {
-      setIsLoading(true); setError(''); setMessage('');
 
-      // Check what providers are linked to this email
+    try {
+      setIsLoading(true);
+      setError('');
+      setMessage('');
+
       const methods = await fetchSignInMethodsForEmail(auth, email);
 
       if (methods.length === 0) {
-        // No account with this email
         setError('No account found with this email. Please sign up first.');
         setIsLoading(false);
         return;
       }
 
-      // Removed artificial block: Allow Firebase to native send a reset link, which cleanly links a new password to an existing Google account!
       await sendPasswordResetEmail(auth, email);
       setMessage('✅ Password reset email sent! Check your inbox (and spam folder).');
       setMode('sign_in');
@@ -136,28 +139,27 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#080810] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background glows */}
+      {/* background glow blobs */}
       <div className="absolute top-[-20%] left-[-10%] w-96 h-96 bg-indigo-700/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-96 h-96 bg-purple-700/20 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md z-10">
-        {/* Logo */}
+        {/* logo + heading */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 shadow-[0_0_30px_rgba(99,102,241,0.4)]">
             <Bot className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Mockly AI</h1>
           <p className="text-slate-400 text-sm mt-1">
-            {mode === 'sign_in'      && 'Welcome back! Sign in to continue.'}
-            {mode === 'sign_up'      && 'Create your free account.'}
+            {mode === 'sign_in' && 'Welcome back! Sign in to continue.'}
+            {mode === 'sign_up' && 'Create your free account.'}
             {mode === 'forgot_password' && 'Reset your password via email.'}
           </p>
         </div>
 
-        {/* Card */}
+        {/* main card */}
         <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
 
-          {/* Success message */}
           {message && (
             <div className="mb-5 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-start space-x-3 text-emerald-400 text-sm">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -165,14 +167,12 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Error message */}
           {error && (
             <div className="mb-5 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
               {error}
             </div>
           )}
 
-          {/* ── FORGOT PASSWORD form ── */}
           {mode === 'forgot_password' ? (
             <form onSubmit={handleForgotPassword} className="space-y-5">
               <div className="space-y-1.5">
@@ -182,7 +182,9 @@ export default function LoginPage() {
                     <Mail className="h-4 w-4 text-slate-500" />
                   </div>
                   <input
-                    type="email" required value={email}
+                    type="email"
+                    required
+                    value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     className={inputClass}
@@ -190,14 +192,16 @@ export default function LoginPage() {
                 </div>
               </div>
               <button
-                type="submit" disabled={isLoading}
+                type="submit"
+                disabled={isLoading}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_rgba(99,102,241,0.35)] flex items-center justify-center space-x-2 disabled:opacity-60"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                 <span>{isLoading ? 'Sending...' : 'Send Reset Email'}</span>
               </button>
               <button
-                type="button" onClick={() => { setMode('sign_in'); setError(''); setMessage(''); }}
+                type="button"
+                onClick={() => { setMode('sign_in'); setError(''); setMessage(''); }}
                 className="w-full flex items-center justify-center space-x-2 text-slate-400 hover:text-white text-sm transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -205,7 +209,6 @@ export default function LoginPage() {
               </button>
             </form>
           ) : (
-            /* ── SIGN IN / SIGN UP form ── */
             <form onSubmit={handleEmailAuth} className="space-y-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
@@ -214,7 +217,9 @@ export default function LoginPage() {
                     <Mail className="h-4 w-4 text-slate-500" />
                   </div>
                   <input
-                    type="email" required value={email}
+                    type="email"
+                    required
+                    value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     className={inputClass}
@@ -241,7 +246,8 @@ export default function LoginPage() {
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    required value={password}
+                    required
+                    value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder={mode === 'sign_up' ? 'Min. 6 characters' : '••••••••'}
                     className={`${inputClass} pr-12`}
@@ -255,12 +261,13 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {mode === 'sign_up' && (
-                  <p className="text-[11px] text-slate-600">Use a strong password with letters, numbers & symbols.</p>
+                  <p className="text-[11px] text-slate-600">Use a strong password with letters, numbers &amp; symbols.</p>
                 )}
               </div>
 
               <button
-                type="submit" disabled={isLoading}
+                type="submit"
+                disabled={isLoading}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_rgba(99,102,241,0.35)] flex items-center justify-center space-x-2 disabled:opacity-60"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
@@ -270,22 +277,27 @@ export default function LoginPage() {
               <p className="text-center text-sm text-slate-500">
                 {mode === 'sign_in' ? (
                   <>Don&apos;t have an account?{' '}
-                    <button type="button" onClick={() => { setMode('sign_up'); setError(''); }}
-                      className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => { setMode('sign_up'); setError(''); }}
+                      className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+                    >
                       Sign Up
                     </button>
                   </>
                 ) : (
                   <>Already have an account?{' '}
-                    <button type="button" onClick={() => { setMode('sign_in'); setError(''); }}
-                      className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => { setMode('sign_in'); setError(''); }}
+                      className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+                    >
                       Sign In
                     </button>
                   </>
                 )}
               </p>
 
-              {/* Divider */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/8" />
@@ -295,9 +307,10 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Google */}
               <button
-                type="button" onClick={handleGoogleSignIn} disabled={isLoading}
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
                 className={`w-full flex items-center justify-center space-x-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-4 rounded-xl transition-all shadow-sm disabled:opacity-60 ${
                   highlightGoogle ? 'ring-4 ring-indigo-500 ring-offset-2 ring-offset-[#0d0d1a] scale-105 shadow-[0_0_30px_rgba(99,102,241,0.6)]' : ''
                 }`}

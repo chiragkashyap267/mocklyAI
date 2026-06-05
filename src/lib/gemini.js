@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const getGeminiModel = (failedKeys = []) => {
-  // Pool all available keys from the environment
+  // grab all keys defined in env
   let keys = [
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
@@ -14,26 +14,27 @@ export const getGeminiModel = (failedKeys = []) => {
     process.env.GEMINI_API_KEY_9,
     process.env.GEMINI_API_KEY_10,
     process.env.GEMINI_API_KEY_11
-  ].filter(Boolean); // Remove any undefined or empty keys
+  ].filter(Boolean);
 
-  // Filter out the keys that failed during this specific request
-  let availableKeys = keys.filter(key => !failedKeys.includes(key));
+  // skip keys that already failed this request
+  let available = keys.filter(k => !failedKeys.includes(k));
 
-  if (availableKeys.length === 0) {
+  if (available.length === 0) {
     if (keys.length > 0) {
-      console.warn("All available Gemini API keys have failed. Falling back to pool.");
-      availableKeys = keys;
+      // all failed, reset and try again from the full pool
+      console.warn('All Gemini keys failed — falling back to full pool');
+      available = keys;
     } else {
-      console.error("No Gemini API keys found in environment variables.");
+      console.error('No Gemini API keys found in environment');
       return { model: null, keyUsed: null };
     }
   }
 
-  // Randomly select an API key for load balancing
-  const randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
-  
-  const genAI = new GoogleGenerativeAI(randomKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  
-  return { model, keyUsed: randomKey };
+  // pick one at random for load balancing across keys
+  const picked = available[Math.floor(Math.random() * available.length)];
+
+  const genAI = new GoogleGenerativeAI(picked);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  return { model, keyUsed: picked };
 };

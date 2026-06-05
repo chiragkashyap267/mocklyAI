@@ -49,7 +49,7 @@ export default function SettingsPage() {
     return () => unsubscribe();
   }, [router]);
 
-  // Compress image helper using Canvas to bypass Storage permission issues and keep Firestore fast
+  // compress before uploading — saves bandwidth and avoids storage quota issues
   const compressImage = (file) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -57,7 +57,7 @@ export default function SettingsPage() {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 400; // max width/height for avatar
+          const MAX_SIZE = 400;
           let width = img.width;
           let height = img.height;
           
@@ -133,7 +133,7 @@ export default function SettingsPage() {
         updatedAt: new Date()
       }, { merge: true });
       
-      alert('Profile updated successfully! It will now appear on the Leaderboard.');
+      alert('Profile updated! It will now appear on the Leaderboard.');
     } catch (error) {
       console.error('Save failed:', error);
       alert('Failed to save profile.');

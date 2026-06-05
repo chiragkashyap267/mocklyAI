@@ -26,7 +26,7 @@ export async function POST(req) {
     };
     const difficultyHint = difficultyGuide[level] || difficultyGuide['Mid-Level'];
 
-    // ── TECHNICAL ROUND PROMPT ─────────────────────────────────────────────
+    // technical round prompt
     const technicalPrompt = hasResume
       ? `You are a senior technical interviewer at a top tech company.
 
@@ -84,7 +84,7 @@ JSON structure (array of exactly 10):
   }
 ]`;
 
-    // ── HR ROUND PROMPT ────────────────────────────────────────────────────
+    // HR round prompt
     const hrPrompt = `You are a seasoned HR interviewer.
 
 Target Job Role: ${jobRole}
@@ -111,7 +111,7 @@ JSON structure (array of exactly 5):
   }
 ]`;
 
-    // Fault-tolerant internal function to generate content using dynamic key load balancing
+    // retry logic: try up to 5 different API keys before giving up
     const generateWithRetry = async (promptText) => {
       let lastError;
       let failedKeys = [];
@@ -162,10 +162,10 @@ JSON structure (array of exactly 5):
       throw new Error('Mockly AI returned unexpected data format.');
     }
 
-    // Merge: technical first, then HR
+    // merge: technical questions first, HR at the end
     const questions = [
       ...technicalQuestions.map(q => ({ ...q, questionType: 'technical' })),
-      ...hrQuestions.map(q =>       ({ ...q, questionType: 'hr'        })),
+      ...hrQuestions.map(q => ({ ...q, questionType: 'hr' })),
     ];
 
     return NextResponse.json({ questions });
