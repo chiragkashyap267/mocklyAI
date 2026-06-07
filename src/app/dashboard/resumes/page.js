@@ -140,17 +140,17 @@ export default function ResumesPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-1 sm:mb-2">
           Resume <span className="text-indigo-400">Manager</span>
         </h1>
-        <p className="text-slate-400 text-lg">Upload your latest resume to get tailored interview questions.</p>
+        <p className="text-slate-400 text-sm sm:text-lg">Upload your latest resume to get tailored interview questions.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
         
         {/* Upload Section - Takes 2/3 width on large screens */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden">
+        <div className="lg:col-span-2 space-y-5 sm:space-y-6">
+          <div className="bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 backdrop-blur-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
             
             <h2 className="text-xl font-bold text-white mb-6 flex items-center space-x-2">
@@ -228,11 +228,11 @@ export default function ResumesPage() {
 
                 {/* Upload Action */}
                 {status !== 'success' && (
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-4 sm:mt-6 flex justify-end">
                     <button
                       onClick={uploadAndParse}
                       disabled={isUploading}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isUploading && <Loader2 className="w-4 h-4 animate-spin" />}
                       <span>

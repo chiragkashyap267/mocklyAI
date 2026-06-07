@@ -140,25 +140,25 @@ function LeaderboardContent() {
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
       {/* Header */}
-      <div className="text-center relative py-10">
+      <div className="text-center relative py-6 sm:py-10">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/8 rounded-full blur-[100px] pointer-events-none -z-10" />
-        <Trophy className="w-16 h-16 text-indigo-400 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(99,102,241,0.25)]" />
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-3">
+        <Trophy className="w-10 h-10 sm:w-16 sm:h-16 text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_15px_rgba(99,102,241,0.25)]" />
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-2 sm:mb-3">
           Global <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Hall of Fame</span>
         </h1>
-        <p className="text-slate-400 text-base max-w-2xl mx-auto">
+        <p className="text-slate-400 text-xs sm:text-base max-w-2xl mx-auto px-2">
           Scores are broken down by <span className="text-cyan-400 font-semibold">Technical</span> and{' '}
           <span className="text-violet-400 font-semibold">HR</span> rounds, ranked by overall performance.
         </p>
       </div>
 
       {/* Level filter */}
-      <div className="flex items-center gap-2 flex-wrap justify-center">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
         {levels.map(l => (
           <button
             key={l}
             onClick={() => setFilterLevel(l)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border transition-all ${
               filterLevel === l
                 ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                 : 'bg-white/[0.03] border-white/10 text-slate-500 hover:text-slate-300'
@@ -170,7 +170,7 @@ function LeaderboardContent() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-10 backdrop-blur-xl">
+      <div className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 backdrop-blur-xl">
         {filtered.length === 0 ? (
           <div className="text-center py-20 text-slate-500">
             <Trophy className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -277,14 +277,14 @@ function LeaderboardContent() {
                     </div>
 
                     {/* Overall score */}
-                    <div className="flex items-center sm:ml-4 space-x-4 sm:flex-shrink-0 justify-between sm:justify-end border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0">
+                    <div className="flex items-center sm:ml-4 space-x-3 sm:flex-shrink-0 justify-between sm:justify-end border-t sm:border-t-0 border-white/10 pt-2.5 sm:pt-0">
                       <div className="flex flex-col items-start sm:items-end sm:text-right">
                         <div className="flex items-center space-x-1">
-                          <Star className="w-5 h-5 text-indigo-400 fill-indigo-400" />
-                          <span className="text-3xl font-black tracking-tighter text-white">
+                          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400 fill-indigo-400" />
+                          <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white">
                             {entry.overall?.toFixed(1)}
                           </span>
-                          <span className="text-slate-500 font-bold self-end mb-0.5 text-sm">/10</span>
+                          <span className="text-slate-500 font-bold self-end mb-0.5 text-xs sm:text-sm">/10</span>
                         </div>
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Overall</p>
                       </div>

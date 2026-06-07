@@ -102,18 +102,18 @@ function SetupForm() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10">
-      <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-xl relative overflow-hidden">
+    <div className="max-w-3xl mx-auto mt-4 sm:mt-8 md:mt-10">
+      <div className="bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 backdrop-blur-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
         
         <div className="relative z-10">
-          <div className="flex items-center space-x-4 mb-8">
-            <div className="p-3 bg-purple-500/20 rounded-xl text-purple-400">
-              <Sparkles className="w-8 h-8" />
+          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 mb-6 sm:mb-8">
+            <div className="p-2 sm:p-3 bg-purple-500/20 rounded-xl text-purple-400 flex-shrink-0">
+              <Sparkles className="w-5 h-5 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Configure Interview</h1>
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">Configure Interview</h1>
                 <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">API Active</span>
@@ -201,7 +201,7 @@ function SetupForm() {
               <button
                 type="submit"
                 disabled={isGenerating || !jobRole}
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(147,51,234,0.3)] flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8"
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 sm:py-4 px-6 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(147,51,234,0.3)] flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6 sm:mt-8"
               >
                 {isGenerating ? (
                   <>

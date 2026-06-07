@@ -165,13 +165,13 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       
       <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-1 sm:mb-2">
           Account <span className="text-indigo-400">Settings</span>
         </h1>
-        <p className="text-slate-400 text-lg">Manage your public profile for the Leaderboard.</p>
+        <p className="text-slate-400 text-sm sm:text-lg">Manage your public profile for the Leaderboard.</p>
       </div>
 
-      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 md:p-12 backdrop-blur-xl space-y-12">
+      <div className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 backdrop-blur-xl space-y-8 sm:space-y-12">
         
         {/* Profile Picture Section */}
         <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
